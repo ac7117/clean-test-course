@@ -6,12 +6,13 @@ on:
       - lesson-2
 jobs:
   deploy:
+    needs: [build_and_test]
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: backend
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v2
       - name: Disable Debug
         run: |
           sed -i 's/DEBUG = True/DEBUG = False/g' hangry_api/hangry_api/settings.py
@@ -19,15 +20,12 @@ jobs:
         run: zip -r deploy.zip . -x '*.git*'
       - name: '**PLACEHOLDER** Deploy to Elastic Beanstalk'
         run: echo Placeholder for Deployment
-  build-and-test:
+
+  build_and_test:
     runs-on: ubuntu-latest
-    needs: deploy
-    defaults:
-      run:
-        working-directory: backend
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
         with:
           python-version: '3.10'
       - name: Install dependencies
@@ -37,8 +35,6 @@ jobs:
         working-directory: backend
       - name: Run unit tests
         run: |
-          coverage run --source=hangry_api manage.py test
-          coverage report -m
+          coverage run -m --source=./hangry_api pytest
+          coverage report
         working-directory: backend
-        
-      
